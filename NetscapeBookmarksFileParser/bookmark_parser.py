@@ -309,8 +309,13 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         raise Exception('Root bookmarks folder not found')
 
     body_start = line_num
+    tag_counter = 0
     while line_num < len(lines):
+        if '<DL><p>' in lines[line_num]:
+            tag_counter += 1
         if '</DL><p>' in lines[line_num]:
+            tag_counter -= 1
+        if tag_counter == 0:
             break
         line_num += 1
     else:
