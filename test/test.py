@@ -1,20 +1,20 @@
 import unittest
 import warnings
 
-from NetscapeBookmarksFileParser import bookmark_parser
+from NetscapeBookmarksFileParser import __init___
 
-attribute_finder = bookmark_parser.attribute_finder
-doc_type = bookmark_parser.doc_type
-folder = bookmark_parser.folder
-entry = bookmark_parser.entry
-item_handler = bookmark_parser.item_handler
-folder_handler = bookmark_parser.folder_handler
-Folder = bookmark_parser.BookmarkFolder
-Entry = bookmark_parser.BookmarkEntry
-Feed = bookmark_parser.BookmarkFeed
-WebSlice = bookmark_parser.BookmarkWebSlice
-File = bookmark_parser.NetscapeBookmarksFile
-parse = bookmark_parser.parse
+attribute_finder = __init___.attribute_finder
+doc_type = __init___.doc_type
+folder = __init___.folder
+entry = __init___.entry
+item_handler = __init___.item_handler
+folder_handler = __init___.folder_handler
+Folder = __init___.BookmarkFolder
+Entry = __init___.BookmarkEntry
+Feed = __init___.BookmarkFeed
+WebSlice = __init___.BookmarkWebSlice
+File = __init___.NetscapeBookmarksFile
+parse = __init___.parse
 
 
 # noinspection SpellCheckingInspection
