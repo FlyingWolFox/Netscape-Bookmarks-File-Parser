@@ -42,7 +42,7 @@ Some more uncommon attributes and items may not be supported, I tried to support
 the common ones and some uncommon that may still be used. Look at the
 [Attributes Supported]() an [Items Supported]() pages in the wiki. If you want to 
 know more about how a file has to be accepted by te parser look at the
-[Netscape Bookmark File Format page]() in the wiki
+[Netscape Bookmarks File Format page]() in the wiki
 
 ## About legacy support
 
