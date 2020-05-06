@@ -13,7 +13,7 @@ long_description = 'This is a Parser for the Netscape Bookmarks file format, ' \
 setup(
     name='netscape-bookmarks-file-parser',
     version=__version__,
-    packages=['NetscapeBookmarksFileParse'],
+    packages=['NetscapeBookmarksFileParser'],
     url='https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser',
     license='MIT',
     author=__author__,
