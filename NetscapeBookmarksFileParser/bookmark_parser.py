@@ -247,6 +247,9 @@ class NetscapeBookmarksFile(object):
     def parse_file(self):
         parse(self)
 
+    def __str__(self):
+        return "NetscapeBookmarkFile(bookmarks: {0})".format(str(self.bookmarks))
+
 
 def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
     line_num = 0
