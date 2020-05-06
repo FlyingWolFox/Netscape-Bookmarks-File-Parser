@@ -3,24 +3,31 @@ import warnings
 from dataclasses import dataclass
 
 warning = '<!-- This is an automatically generated file.\nIt will be read and overwritten.\nDO NOT EDIT! -->\n'
-non_parsed = dict()
+non_parsed = dict()  # lines not parsed
 
 
 @dataclass
 class BookmarkItem:
-    num: int = 0
-    add_date_unix: int = 0
-    last_modified_unix: int = 0
-    parent = None
-    name: str = ''
+    """
+    Represents an item in the bookmarks. An item can be a folder
+    or an entry (shortcut, feed or web slice).
+    """
+    num: int = 0  # the position of the item in the folder it's in
+    add_date_unix: int = 0  # the creation date of the item in unix time
+    last_modified_unix: int = 0  # the creation date of the item in unix time
+    parent = None  # the parent folder of the item. Just the root folder have this equal None
+    name: str = ''  # name of the item
 
 
 @dataclass
 class BookmarkFolder(BookmarkItem):
-    personal_toolbar: bool = False
-    items = None
-    children = None
-    entries = None
+    """
+    Represents a folder in the bookmarks
+    """
+    personal_toolbar: bool = False  # true if the folder is the bookmarks toolbar
+    items = None  # list that contains all items inside this folder
+    children = None  # list that contains all subfolders inside this folder
+    entries = None  # list that contains all entries (shortcuts) inside this folder
 
     def __post_init__(self):
         self.items = []
@@ -30,16 +37,19 @@ class BookmarkFolder(BookmarkItem):
 
 @dataclass
 class BookmarkEntry(BookmarkItem):
-    href: str = ""
-    last_visit_unix: int = 0
-    private: int = 0
-    tags = None
-    icon_url_fake: bool = False
-    icon_url: str = ""
-    icon_base64: str = ""
-    feed: bool = False
-    web_slice: bool = False
-    comment: str = ""
+    """
+    Represents an entry (shortcut) in the bookmarks
+    """
+    href: str = ""  # link to the web page (or anything alike) of the entry
+    last_visit_unix: int = 0  # date when the web paged was last visited, in unix time
+    private: int = 0  # equals to the PRIVATE attribute
+    tags = None  # tags of this entry, if present
+    icon_url_fake: bool = False  # true if the ICON_URI attribute start with fake-favicon-uri.
+    icon_url: str = ""  # the favicon url if icon_url_fake is false and the attribute ICON_URI is present
+    icon_base64: str = ""  # the favicon encoded in base64. Commonly is a png image. The string here can be really big
+    feed: bool = False  # true if the attribute FEED  is present. Legacy support for feeds
+    web_slice: bool = False  # true if the attribute WEBSLICE is present
+    comment: str = ""  # comment of the entry if present
 
     def __post_init__(self):
         self.tags = ['']
@@ -47,18 +57,30 @@ class BookmarkEntry(BookmarkItem):
 
 @dataclass
 class BookmarkFeed(BookmarkEntry):
+    """
+    Represents a Feed in the bookmarks
+    """
     feed: bool = True
-    feed_url: str = ""
+    feed_url: str = ""  # feed url
 
 
 @dataclass
 class BookmarkWebSlice(BookmarkEntry):
+    """
+    Represents an Web Slice in the bookmarks
+    """
     web_slice: bool = True
-    is_live_preview: bool = False
-    preview_size: str = ""
+    is_live_preview: bool = False  # value of the attribute ISLIVEPREVIEW
+    preview_size: str = ""  # value of the attribute PREVIEWSIZE.
 
 
 def attribute_finder(inside: str) -> dict:
+    """
+    Find the attributes and its values and
+    put them in a dictionary
+    :param inside: The inside of the tag, just the attributes
+    :return: dictionary with the attributes and its values as string
+    """
     attributes = dict()
     attribute = ""
     value = ""
@@ -86,6 +108,12 @@ def attribute_finder(inside: str) -> dict:
 
 
 def doc_type(tag: str):
+    """
+    Verifies if the <!DOCTYPE> tag is correct.
+    Prints an warning if it doesn't match the expected
+    :param tag: <!DOCTYPE> tag's line
+    :return: the conten of the tag (the doc type)
+    """
     start = tag.find('<') + len('<!DOCTYPE ')
     end = tag.find('>')
     content = tag[start:end]
@@ -99,6 +127,12 @@ def doc_type(tag: str):
 
 
 def folder(tag: str):
+    """
+    Makes a BookmarkFolder with the
+    <H3> tag info
+    :param tag: <H3> tag
+    :return: BookmarFolder with the tag info
+    """
     start = tag.find('<') + 7
     end = tag[start:].find('>') + start
     attributes = attribute_finder(tag[start:end])
@@ -113,6 +147,14 @@ def folder(tag: str):
 
 
 def entry(tag: str, comment=''):
+    """
+    Makes an BookmarkEntry (or one of its subclasses, rare)
+    with the info of the <A> tag, the comment (<DD> tag) is
+    passed a part
+    :param tag: <A> tag
+    :param comment: <DD> tag, if exists
+    :return: BookmarkEntry (or one of the subclasses, rare) with the <A> tag info and comment
+    """
     start = tag.find('<') + 6
     end = tag[start:].find('>') + start
     attributes = attribute_finder(tag[start:end])
@@ -148,6 +190,13 @@ def entry(tag: str, comment=''):
 
 
 def item_handler(line: int, a_tag: str, dd_tag: str = ''):
+    """
+    Handles items in the bookmark tree
+    :param line: the line number of the <A> tag
+    :param a_tag: the <A> tag
+    :param dd_tag: the <DD> tag
+    :return: BookmarkEntry (or one of its subclasses, rare) with the <A> and <DD> tag info
+    """
     if '<A' not in a_tag or '</A>' not in a_tag:
         warning_ = '"A" tag missing in shortcut item at line ' + str(line + 1)
         warnings.warn(warning_)
@@ -155,6 +204,14 @@ def item_handler(line: int, a_tag: str, dd_tag: str = ''):
 
 
 def folder_handler(line: int, h3_tag: str, body: list):
+    """
+    Handles folders in the bookmark tree. Puts the position number
+    of the items and creates the bookmark tree. It's called recursively
+    :param line: the line number of the <H3> tag
+    :param h3_tag: the <H3> tag
+    :param body: the body of the folder, from <DL><p> to </Dl><p> tag
+    :return: BookmarkFolder with all the info and its tree
+    """
     if '<H3' not in h3_tag or '</H3>' not in h3_tag:
         warning_ = '"H3" tag missing in folder item at line ' + str(line + 1)
         warnings.warn(warning_)
@@ -224,6 +281,10 @@ def folder_handler(line: int, h3_tag: str, body: list):
 
 
 class NetscapeBookmarksFile(object):
+    """
+    Represents the Netscape Bookmark File
+    """
+
     def __init__(self, bookmarks="", parse_automatically=True):
         self.html: str = ""
         if hasattr(bookmarks, 'read'):
@@ -245,6 +306,10 @@ class NetscapeBookmarksFile(object):
             self.parse_file()
 
     def parse_file(self):
+        """
+        starts the parsing of the file
+        :return: None
+        """
         parse(self)
 
     def __str__(self):
@@ -252,6 +317,12 @@ class NetscapeBookmarksFile(object):
 
 
 def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
+    """
+    Responsible to start parsing, getting metadata information
+    and start the folder recursion
+    :param netscape_bookmarks_file: a NetscapeBookMarkFile
+    :return: the NetscapeBookMarkFile, but parsed
+    """
     line_num = 0
     file = netscape_bookmarks_file
     lines = netscape_bookmarks_file.html.splitlines()
