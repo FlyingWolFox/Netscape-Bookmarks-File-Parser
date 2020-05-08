@@ -25,7 +25,7 @@ you the file automatically parsed in a NetscapeBookmarksFile
 object. To not parse automatically use
 `NetscapeBookmarkFile(bookmarks, parse_automatically=Flase)`.
 To parse, call the `parse_file()` method. To know about the classes
-that the parser will work with, see [Classes page]() in the wiki 
+that the parser will work with, see the [wiki Classes section](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/Code-Documentation#classes) 
 
 ## Notice about this parser
 
@@ -40,23 +40,29 @@ mainly, but also from file examples [here](https://sixtwothree.org/posts/homeste
 (`test\test.html` is one of them).
 Some more uncommon attributes and items may not be supported, I tried to support to support
 the common ones and some uncommon that may still be used. Look at the
-[Attributes Supported]() an [Items Supported]() pages in the wiki. If you want to 
-know more about how a file has to be accepted by te parser look at the
-[Netscape Bookmarks File Format page]() in the wiki
+[Attributes Supported](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/The-Parser#attributes-supported)
+and 
+[Items Supported](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/The-Parser#items-supported)
+sections in the wiki. If you want to know more about how a file has to be accepted by te parser look at the
+[Netscape Bookmarks File Format page](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/Netscape-Bookmarks-File-Format)
+in the wiki
 
 ## About legacy support
 
 Due to the Netscape Bookmark file format not having an official standard, many things
-of this parser was got by file examples in the internet (see [Notice about this parser])
-this has legacy support for some types of items that aren't in use today. These are:
+of this parser was got by file examples in the internet (see the [Nestcape Bookmarks File format](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/Netscape-Bookmarks-File-Format)
+and [The parser](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/The-Parser)
+in the wiki).
+This has legacy support for some types of items that aren't in use today. These are:
 - Feed: Probably RSS feeds, just some attributes following the Microsoft's Documentation
-- Web Slices: "Live bookmarks". They showed a piece of the page you saved. Extinct but in the Microsoft's Documentation
-If you want more details look at the [Legacy Support page]() in the wiki
+- Web Slices: "Live bookmarks". They showed a piece of the page you saved. Extinct but in the Microsoft's Documentation.
+If you want more details look at the [Legacy section](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/The-Parser#about-legacybasic-support)
+in the wiki
 
 ## Help
-- If you would like to report a bug or ask a question please [open an issue]().
-- If you would like to help this project, you can open a [Pull Request]()
-- If you want more information about this project, have a look at the [wiki]()
+- If you would like to report a bug or ask a question please [open an issue](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/issues/new).
+- If you would like to help this project, you can open a Pull Request
+- If you want more information about this project, have a look at the [wiki](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki)
 
 ## Future plans:
 - Create a branch that uses normal classes instead of data classes, for support in
