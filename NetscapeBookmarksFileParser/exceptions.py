@@ -10,7 +10,7 @@ class ParserException(Exception):
             return
 
 
-class TagNotPresent(ParserException):
+class TagNotPresentException(ParserException):
     pass
 
 

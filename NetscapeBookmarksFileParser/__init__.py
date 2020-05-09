@@ -1,6 +1,7 @@
 import html
 import warnings
 from dataclasses import dataclass
+from NetscapeBookmarksFileParser.exceptions import *
 
 warning = '''<!-- This is an automatically generated file.
 \tIt will be read and overwritten.
@@ -269,7 +270,7 @@ def folder_handler(line: int, h3_tag: str, body: list):
                         i += 1
                     if tag_counter != 0:
                         exception_message = 'Closing "DL" tag expected. Opening at line ' + str(i + 1)
-                        raise Exception(exception_message)
+                        raise TagNotPresentException(exception_message)
                     body_end = i + 1
                     subfolder = folder_handler(body_start - 1, body[body_start - 1], body[body_start:body_end])
                     subfolder.num = len(bookmark_folder.items)
@@ -335,12 +336,12 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         line_num += 1
 
     if not line_num < len(lines):
-        raise Exception('Empty file/string')
+        raise EmptyFileException('Empty file/string')
 
     if '<!DOCTYPE' in lines[line_num]:
         file.doc_type = doc_type(lines[line_num])
     else:
-        raise Exception('"!DOCTYPE" tag not found')
+        raise TagNotPresentException('"!DOCTYPE" tag not found')
     line_num += 1
 
     if '<!--' in lines[line_num]:
@@ -357,7 +358,7 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         if attributes.get('HTTP-EQUIV') != "Content-Type" or attributes.get('CONTENT') != "text/html; charset=UTF-8":
             warnings.warn('"META" non complaint')
     else:
-        raise Exception('"META" tag not found')
+        raise TagNotPresentException('"META" tag not found')
     line_num += 1
 
     if '<TITLE>' in lines[line_num]:
@@ -366,7 +367,7 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         file.title = lines[line_num][start:end]
     else:
         exception_message = '"TITLE" tag not found on line ' + str(line_num)
-        raise Exception(exception_message)
+        raise TagNotPresentException(exception_message)
     line_num += 1
 
     if '<H1>' in lines[line_num]:
@@ -374,7 +375,7 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         end = lines[line_num].rfind('</H1>')
         file.title = lines[line_num][start:end]
     else:
-        raise Exception('"<H1>" not found')
+        raise TagNotPresentException('"<H1>" not found')
     line_num += 1
 
     while line_num < len(lines):
@@ -383,7 +384,7 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         non_parsed[line_num] = lines[line_num]
         line_num += 1
     else:
-        raise Exception('Root bookmarks folder not found')
+        raise RootBookmarksFolderNotFoundException('Root bookmarks folder not found')
 
     body_start = line_num
     tag_counter = 0
@@ -396,7 +397,7 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
             break
         line_num += 1
     else:
-        raise Exception('Root bookmarks folder body end tag ("</DL><p>") not found')
+        raise TagNotPresentException('Root bookmarks folder body end tag ("</DL><p>") not found')
     body_end = line_num
 
     pseud_h3_tag = '<DT><H3>' + file.title + '</H3>'
