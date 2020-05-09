@@ -1,14 +1,38 @@
-class TagNotPresent(Exception):
+class ParserException(Exception):
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+
+    def __str__(self):
+        if self.message:
+            return
+
+
+class TagNotPresent(ParserException):
     pass
 
 
-class EmptyFileException(Exception):
+class EmptyFileException(ParserException):
     pass
 
 
-class RootBookmarksFolderNotFoundException(Exception):
+class RootBookmarksFolderNotFoundException(ParserException):
     pass
 
 
-class ValueEmptyException(Exception):
+class CreatorException(Exception):
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+
+    def __str__(self):
+        if self.message:
+            return
+
+
+class ValueEmptyException(CreatorException):
     pass
