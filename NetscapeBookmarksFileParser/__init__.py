@@ -2,7 +2,10 @@ import html
 import warnings
 from dataclasses import dataclass
 
-warning = '<!-- This is an automatically generated file.\nIt will be read and overwritten.\nDO NOT EDIT! -->\n'
+warning = '''<!-- This is an automatically generated file.
+\tIt will be read and overwritten.
+\tDO NOT EDIT! -->
+'''
 non_parsed = dict()  # lines not parsed
 
 
