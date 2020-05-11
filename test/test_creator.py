@@ -1,5 +1,5 @@
 import unittest
-from NetscapeBookmarksFileParser import NetscapeBookmarksFileCreator as C
+from NetscapeBookmarksFileParser import creator as C
 import NetscapeBookmarksFileParser as P
 
 

@@ -1,20 +1,21 @@
 import unittest
 import warnings
 
-import NetscapeBookmarksFileParser as Parser
+import NetscapeBookmarksFileParser.parser as parser
+import NetscapeBookmarksFileParser as classes
 
-attribute_finder = Parser.attribute_finder
-doc_type = Parser.doc_type
-folder = Parser.folder
-entry = Parser.entry
-item_handler = Parser.item_handler
-folder_handler = Parser.folder_handler
-Folder = Parser.BookmarkFolder
-Entry = Parser.BookmarkEntry
-Feed = Parser.BookmarkFeed
-WebSlice = Parser.BookmarkWebSlice
-File = Parser.NetscapeBookmarksFile
-parse = Parser.parse
+attribute_finder = parser.attribute_finder
+doc_type = parser.doc_type
+folder = parser.folder
+entry = parser.entry
+item_handler = parser.item_handler
+folder_handler = parser.folder_handler
+Folder = classes.BookmarkFolder
+Entry = classes.BookmarkEntry
+Feed = classes.BookmarkFeed
+WebSlice = classes.BookmarkWebSlice
+File = classes.NetscapeBookmarksFile
+parse = parser.parse
 
 
 # noinspection SpellCheckingInspection
