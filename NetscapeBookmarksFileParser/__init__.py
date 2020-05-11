@@ -3,10 +3,6 @@ import warnings
 from dataclasses import dataclass
 from NetscapeBookmarksFileParser.exceptions import *
 
-warning = '''<!-- This is an automatically generated file.
-\tIt will be read and overwritten.
-\tDO NOT EDIT! -->
-'''
 non_parsed = dict()  # lines not parsed
 
 
@@ -56,7 +52,7 @@ class BookmarkEntry(BookmarkItem):
     comment: str = ""  # comment of the entry if present
 
     def __post_init__(self):
-        self.tags = ['']
+        self.tags = list()
 
 
 @dataclass
@@ -370,10 +366,11 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         raise TagNotPresentException(exception_message)
     line_num += 1
 
+    h1 = ''
     if '<H1>' in lines[line_num]:
         start = lines[line_num].find('<H1>') + len('<H1>')
         end = lines[line_num].rfind('</H1>')
-        file.title = lines[line_num][start:end]
+        h1 = lines[line_num][start:end]
     else:
         raise TagNotPresentException('"<H1>" not found')
     line_num += 1
@@ -402,4 +399,5 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
 
     pseud_h3_tag = '<DT><H3>' + file.title + '</H3>'
     file.bookmarks = folder_handler(body_start - 1, pseud_h3_tag, lines[body_start:body_end + 1])
+    file.bookmarks.name = h1
     return file
