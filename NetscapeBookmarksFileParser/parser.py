@@ -7,7 +7,7 @@ from NetscapeBookmarksFileParser.exceptions import *
 
 def attribute_extractor(inside: str) -> dict:
     """
-    Find the attributes and its values and
+    Extracts the attributes and its values and
     put them in a dictionary
     :param inside: The inside of the tag, just the attributes
     :return: dictionary with the attributes and its values as string
@@ -16,7 +16,7 @@ def attribute_extractor(inside: str) -> dict:
     attribute = ""
     value = ""
     in_value = False
-    in_icon = False
+    in_icon = False  # prevents padding cause an infinite loop
     for i in range(len(inside)):
         if (inside[i].isspace() or inside[i] == '\n') and not in_value:
             continue
@@ -164,7 +164,7 @@ def folder_handler(line: int, h3_tag: str, body: list) -> BookmarkFolder:
                 item.num = len(bookmark_folder.items)
                 item.parent = bookmark_folder
                 bookmark_folder.items.append(item)
-                bookmark_folder.entries.append(item)
+                bookmark_folder.shortcuts.append(item)
 
             elif '<DT><H3' in body[i]:
                 if '<DL><p>' not in body[i + 1]:
@@ -279,8 +279,12 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
 
 
 def add_parser(cls):
+    """
+    adds the parse functions to
+    NetscapeBookmarksFile
+    """
     cls.parse = parse
     return cls
 
 
-add_parser(NetscapeBookmarksFile)
+add_parser(NetscapeBookmarksFile)  # enables parse usage

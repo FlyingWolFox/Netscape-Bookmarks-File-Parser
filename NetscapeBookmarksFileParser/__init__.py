@@ -7,7 +7,7 @@ non_parsed = dict()  # lines not parsed
 class BookmarkItem:
     """
     Represents an item in the bookmarks. An item can be a folder
-    or an entry (shortcut, feed or web slice).
+    or an shortcut (can be feed or web slice too, but it's rare nowadays).
     """
     num: int = 0  # the position of the item in the folder it's in
     add_date_unix: int = 0  # the creation date of the item in unix time
@@ -24,12 +24,12 @@ class BookmarkFolder(BookmarkItem):
     personal_toolbar: bool = False  # true if the folder is the bookmarks toolbar
     items = None  # list that contains all items inside this folder
     children = None  # list that contains all subfolders inside this folder
-    entries = None  # list that contains all entries (shortcuts) inside this folder
+    shortcuts = None  # list that contains all shortcuts inside this folder
 
     def __post_init__(self):
         self.items = []
         self.children = []
-        self.entries = []
+        self.shortcuts = []
 
 
 @dataclass
@@ -37,16 +37,16 @@ class BookmarkShortcut(BookmarkItem):
     """
     Represents a shortcut in the bookmarks
     """
-    href: str = ""  # link to the web page (or anything alike) of the entry
+    href: str = ""  # link to the web page (or anything alike) of the shortcut
     last_visit_unix: int = 0  # date when the web paged was last visited, in unix time
     private: int = 0  # equals to the PRIVATE attribute
-    tags = None  # tags of this entry, if present
+    tags = None  # tags of this shortcut, if present
     icon_url_fake: bool = False  # true if the ICON_URI attribute start with fake-favicon-uri.
     icon_url: str = ""  # the favicon url if icon_url_fake is false and the attribute ICON_URI is present
     icon_base64: str = ""  # the favicon encoded in base64. Commonly is a png image. The string here can be really big
     feed: bool = False  # true if the attribute FEED  is present. Legacy support for feeds
-    web_slice: bool = False  # true if the attribute WEBSLICE is present
-    comment: str = ""  # comment of the entry if present
+    web_slice: bool = False  # true if the attribute WEBSLICE is present. Legacy support for web slices
+    comment: str = ""  # comment of the shortcut if present
 
     def __post_init__(self):
         self.tags = []

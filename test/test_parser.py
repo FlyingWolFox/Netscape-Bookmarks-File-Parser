@@ -335,7 +335,7 @@ class TestFolderHandler(unittest.TestCase):
         exp.last_modified_unix = 1587068423
         exp.personal_toolbar = True
         exp.items.append(item_handler(2, arg2[1]))
-        exp.entries.append(item_handler(2, arg2[1]))
+        exp.shortcuts.append(item_handler(2, arg2[1]))
         self.assertEqual(exp, out)
 
     def test_empty_folder(self):
@@ -420,7 +420,7 @@ class TestParse(unittest.TestCase):
         item.num = 1
         item.parent = exp
         exp.bookmarks.items.append(item)
-        exp.bookmarks.entries.append(item)
+        exp.bookmarks.shortcuts.append(item)
         self.assertDictEqual(exp.__dict__, file.__dict__)
         self.assertDictEqual(exp.bookmarks.__dict__, file.bookmarks.__dict__)
         file_html.close()
