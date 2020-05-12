@@ -173,41 +173,6 @@ def create_file(netscape_bookmarks_file: NetscapeBookmarksFile, print_meta=True)
     return lines
 
 
-def split_items(folder: BookmarkFolder, recursive=True):
-    """
-    splits the items list into children and shortcuts
-    :param folder: folder to have items splitted
-    :param recursive: if subfolders should have their items splitted
-    :return: nothing
-    """
-    for item in folder.items:
-        if isinstance(item, BookmarkShortcut):
-            folder.shortcuts.append(item)
-
-        elif isinstance(item, BookmarkFolder):
-            folder.children.append(item)
-            if recursive:
-                split_items(item)
-
-
-def sort_items(folder: BookmarkFolder, recursive=True):
-    """
-    sort the items list by the num of each item.
-     split_items() is ran before sorting happens
-    :param folder: folder to have its items sorted
-    :param recursive: if subfolders will have their items sorted too
-    :return: nothing
-    """
-    def sort_by_number(e):
-        return e.num
-
-    folder.items.sort(key=sort_by_number)
-    split_items(folder)
-    if recursive:
-        for child in folder.children:
-            sort_items(child)
-
-
 def add_creator(cls):
     """
     adds creator functions
@@ -215,6 +180,7 @@ def add_creator(cls):
     :param cls: NetscapeBookmarksFile class
     :return: nothing
     """
+
     def to_class(func):
         """
         gets a folder utility functions
@@ -222,17 +188,8 @@ def add_creator(cls):
         :param func: function to be converted
         :return: the method
         """
-        def method(netscape_bookmarks_file: NetscapeBookmarksFile, folder: BookmarkFolder = None, recursive=True):
-            if folder is None:
-                folder = netscape_bookmarks_file.bookmarks
-            return func(folder, recursive)
-        method.__doc__ = func.__doc__
-
-        return method
 
     cls.create_file = create_file
-    cls.split_items = to_class(split_items)
-    cls.sort_items = to_class(sort_items)
 
 
 add_creator(NetscapeBookmarksFile)  # enables creator usage

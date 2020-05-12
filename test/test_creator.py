@@ -208,42 +208,6 @@ class TestFolderCreator(unittest.TestCase):
         self.assertEqual(exp, out)
 
 
-class TestItemSorting(unittest.TestCase):
-    def test_items(self):
-        items = list()
-        items.append(creator.BookmarkShortcut(num=2))
-        items.append(creator.BookmarkShortcut(num=1))
-        items.append(creator.BookmarkShortcut(num=0))
-        file = creator.NetscapeBookmarksFile()
-        file.bookmarks = creator.BookmarkFolder()
-        file.bookmarks.items.extend(items)
-        file.sort_items()
-        exp = list()
-        exp.append(creator.BookmarkShortcut(num=0))
-        exp.append(creator.BookmarkShortcut(num=1))
-        exp.append(creator.BookmarkShortcut(num=2))
-        self.assertEqual(exp, file.bookmarks.items)
-
-    def test_folder(self):
-        items = list()
-        items.append(creator.BookmarkShortcut(num=2))
-        folder = creator.BookmarkFolder(num=1)
-        folder.items.extend([creator.BookmarkShortcut(num=1), creator.BookmarkShortcut(num=0)])
-        items.append(folder)
-        items.append(creator.BookmarkShortcut(num=0))
-        file = creator.NetscapeBookmarksFile()
-        file.bookmarks = creator.BookmarkFolder()
-        file.bookmarks.items.extend(items)
-        file.sort_items()
-        exp = list()
-        exp.append(creator.BookmarkShortcut(num=0))
-        folder = creator.BookmarkFolder(num=1)
-        folder.items.extend([creator.BookmarkShortcut(num=0), creator.BookmarkShortcut(num=1)])
-        exp.append(folder)
-        exp.append(creator.BookmarkShortcut(num=2))
-        self.assertEqual(exp, file.bookmarks.items)
-
-
 class TestFileCreation(unittest.TestCase):
     def test_empty(self):
         arg = creator.NetscapeBookmarksFile()
@@ -258,6 +222,7 @@ class TestFileCreation(unittest.TestCase):
         exp.append('<H1>Bookmarks</H1>')
         exp.append('<DL><p>')
         exp.append('</DL><p>')
+        exp.append('')
         self.assertEqual(exp, out)
 
     def test_root_empty(self):
@@ -273,6 +238,7 @@ class TestFileCreation(unittest.TestCase):
         exp.append('<TITLE>Bookmarks</TITLE>')
         exp.append('<H1>Bookmarks</H1>')
         exp.extend(creator.folder_creator(arg.bookmarks)[1:])
+        exp.append('')
         self.assertEqual(exp, out)
 
     def test_meta(self):
@@ -292,6 +258,7 @@ class TestFileCreation(unittest.TestCase):
         exp.append('<TITLE>Title</TITLE>')
         exp.append('<H1>' + arg.bookmarks.name + '</H1>')
         exp.extend(creator.folder_creator(arg.bookmarks)[1:])
+        exp.append('')
         self.assertEqual(exp, out)
 
 
