@@ -1,10 +1,11 @@
+import html
+import warnings
+
 from NetscapeBookmarksFileParser import *
 from NetscapeBookmarksFileParser.exceptions import *
-import warnings
-import html
 
 
-def attribute_finder(inside: str) -> dict:
+def attribute_extractor(inside: str) -> dict:
     """
     Find the attributes and its values and
     put them in a dictionary
@@ -15,6 +16,7 @@ def attribute_finder(inside: str) -> dict:
     attribute = ""
     value = ""
     in_value = False
+    in_icon = False
     for i in range(len(inside)):
         if (inside[i].isspace() or inside[i] == '\n') and not in_value:
             continue
@@ -23,9 +25,12 @@ def attribute_finder(inside: str) -> dict:
         elif not in_value:
             attribute += inside[i]
         elif in_value:
-            if inside[i] == '"' and inside[i - 1] == '=' and inside[i - 2] != '=':
+            if inside[i] == '"' and inside[i - 1] == '=' and not in_icon:
+                if attribute == 'ICON':
+                    in_icon = True
                 continue
             elif inside[i] == '"':
+                in_icon = False
                 in_value = False
             if not in_value:
                 attributes[attribute] = value
@@ -37,7 +42,7 @@ def attribute_finder(inside: str) -> dict:
     return attributes
 
 
-def doc_type(tag: str) -> str:
+def doc_type_extractor(tag: str) -> str:
     """
     Verifies if the <!DOCTYPE> tag is correct.
     Prints an warning if it doesn't match the expected
@@ -56,7 +61,7 @@ def doc_type(tag: str) -> str:
     return content[:]
 
 
-def folder(tag: str) -> BookmarkFolder:
+def folder_tag_extractor(tag: str) -> BookmarkFolder:
     """
     Makes a BookmarkFolder with the
     <H3> tag info
@@ -65,7 +70,7 @@ def folder(tag: str) -> BookmarkFolder:
     """
     start = tag.find('<') + 7
     end = tag[start:].find('>') + start
-    attributes = attribute_finder(tag[start:end])
+    attributes = attribute_extractor(tag[start:end])
     name_start = end + 1
     name_end = (len(tag) - 1) - 4
     bookmark_folder = BookmarkFolder()
@@ -76,21 +81,21 @@ def folder(tag: str) -> BookmarkFolder:
     return bookmark_folder
 
 
-def entry(tag: str, comment='') -> BookmarkEntry:
+def shortcut_tag_extractor(tag: str, comment='') -> BookmarkShortcut:
     """
-    Makes an BookmarkEntry (or one of its subclasses, rare)
+    Makes an BookmarkShortcut (or one of its subclasses, rare)
     with the info of the <A> tag, the comment (<DD> tag) is
     passed a part
     :param tag: <A> tag
     :param comment: <DD> tag, if exists
-    :return: BookmarkEntry (or one of the subclasses, rare) with the <A> tag info and comment
+    :return: BookmarkShortcut (or one of the subclasses, rare) with the <A> tag info and comment
     """
     start = tag.find('<') + 6
     end = tag[start:].find('>') + start
-    attributes = attribute_finder(tag[start:end])
+    attributes = attribute_extractor(tag[start:end])
     name_start = end + 1
     name_end = (len(tag) - 1) - 3
-    bookmark_entry = BookmarkEntry()
+    bookmark_entry = BookmarkShortcut()
     if attributes.get('FEED', '') == "true":
         bookmark_entry = BookmarkFeed()
         bookmark_entry.feed_url = attributes.get('FEEDURL', '')
@@ -106,31 +111,30 @@ def entry(tag: str, comment='') -> BookmarkEntry:
     bookmark_entry.last_visit_unix = int(attributes.get('LAST_VISIT', '0'))
     bookmark_entry.private = int(attributes.get('PRIVATE', '0'))
     bookmark_entry.tags = attributes.get('TAGS', '').split(',')
+    if bookmark_entry.tags == ['']:
+        bookmark_entry.tags = []
     icon_uri = attributes.get('ICON_URI', '')
     if len(icon_uri) != 0:
         if 'fake-favicon-uri' in icon_uri[:17]:
             bookmark_entry.icon_url_fake = True
         else:
             bookmark_entry.icon_url = icon_uri
-    icon = attributes.get('ICON', '')
-    if 'base64' in icon:
-        bookmark_entry.icon_base64 = icon[icon.find(',') + 1:]
+    bookmark_entry.icon_base64 = attributes.get('ICON', '')
     bookmark_entry.comment = comment
     return bookmark_entry
 
 
-def item_handler(line: int, a_tag: str, dd_tag: str = '') -> BookmarkEntry:
+def shortcut_handler(line: int, a_tag: str, dd_tag: str = '') -> BookmarkShortcut:
     """
     Handles items in the bookmark tree
     :param line: the line number of the <A> tag
     :param a_tag: the <A> tag
     :param dd_tag: the <DD> tag
-    :return: BookmarkEntry (or one of its subclasses, rare) with the <A> and <DD> tag info
+    :return: BookmarkShortcut (or one of its subclasses, rare) with the <A> and <DD> tag info
     """
     if '<A' not in a_tag or '</A>' not in a_tag:
-        warning_ = '"A" tag missing in shortcut item at line ' + str(line + 1)
-        warnings.warn(warning_)
-    return entry(a_tag, dd_tag)
+        warnings.warn('"A" tag missing in shortcut item at line ' + str(line + 1))
+    return shortcut_tag_extractor(a_tag, dd_tag)
 
 
 def folder_handler(line: int, h3_tag: str, body: list) -> BookmarkFolder:
@@ -145,7 +149,7 @@ def folder_handler(line: int, h3_tag: str, body: list) -> BookmarkFolder:
     if '<H3' not in h3_tag or '</H3>' not in h3_tag:
         warning_ = '"H3" tag missing in folder item at line ' + str(line + 1)
         warnings.warn(warning_)
-    bookmark_folder = folder(h3_tag)
+    bookmark_folder = folder_tag_extractor(h3_tag)
 
     if len(body) != 0:
         i = 1
@@ -156,7 +160,7 @@ def folder_handler(line: int, h3_tag: str, body: list) -> BookmarkFolder:
                 dd_tag = ''
                 if '<DD>' in body[i + 1]:
                     dd_tag = body[i + 1]
-                item = item_handler(line + i, body[i], dd_tag)
+                item = shortcut_handler(line + i, body[i], dd_tag)
                 item.num = len(bookmark_folder.items)
                 item.parent = bookmark_folder
                 bookmark_folder.items.append(item)
@@ -220,61 +224,39 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
     line_num = 0
     file = netscape_bookmarks_file
     lines = netscape_bookmarks_file.html.splitlines()
-    for line in lines:
-        if '<' in line:
-            break
+
+    while '<' not in lines[line_num]:
         line_num += 1
 
     if not line_num < len(lines):
-        raise EmptyFileException('Empty file/string')
+        warnings.warn('Empty file/string')
 
-    if '<!DOCTYPE' in lines[line_num]:
-        file.doc_type = doc_type(lines[line_num])
-    else:
-        raise TagNotPresentException('"!DOCTYPE" tag not found')
-    line_num += 1
-
-    if '<!--' in lines[line_num]:
-        while '-->' not in lines[line_num]:
-            line_num += 1
+    root_name = ''
+    while '<DL><p>' not in lines[line_num] and line_num < len(lines):
+        if not file.doc_type and '<!DOCTYPE' in lines[line_num]:
+            file.doc_type = doc_type_extractor(lines[line_num])
+        elif not file.http_equiv_meta and '<META' in lines[line_num]:
+            start = lines[line_num].find('<') + len('<META')
+            end = lines[line_num].rfind('>')
+            attributes = attribute_extractor(lines[line_num][start:end])
+            file.http_equiv_meta = attributes.get('HTTP-EQUIV', '')
+            file.content_meta = attributes.get('CONTENT', '')
+        elif not file.title and '<TITLE>' in lines[line_num]:
+            start = lines[line_num].find('<TITLE>') + len('<TITLE>')
+            end = lines[line_num].rfind('</TITLE>')
+            file.title = lines[line_num][start:end]
+        elif not file.bookmarks.name and '<H1>' in lines[line_num]:
+            start = lines[line_num].find('<H1>') + len('<H1>')
+            end = lines[line_num].rfind('</H1>')
+            h1 = lines[line_num][start:end]
+            root_name = h1
+        else:
+            non_parsed[line_num] = lines[line_num]
         line_num += 1
 
-    if '<META' in lines[line_num]:
-        start = lines[line_num].find('<') + len('<META')
-        end = lines[line_num].rfind('>')
-        attributes = attribute_finder(lines[line_num][start:end])
-        file.http_equiv_meta = attributes.get('HTTP-EQUIV', '')
-        file.content_meta = attributes.get('CONTENT', '')
-        if attributes.get('HTTP-EQUIV') != "Content-Type" or attributes.get('CONTENT') != "text/html; charset=UTF-8":
-            warnings.warn('"META" non complaint')
-    else:
-        raise TagNotPresentException('"META" tag not found')
-    line_num += 1
-
-    if '<TITLE>' in lines[line_num]:
-        start = lines[line_num].find('<TITLE>') + len('<TITLE>')
-        end = lines[line_num].rfind('</TITLE>')
-        file.title = lines[line_num][start:end]
-    else:
-        exception_message = '"TITLE" tag not found on line ' + str(line_num)
-        raise TagNotPresentException(exception_message)
-    line_num += 1
-
-    if '<H1>' in lines[line_num]:
-        start = lines[line_num].find('<H1>') + len('<H1>')
-        end = lines[line_num].rfind('</H1>')
-        h1 = lines[line_num][start:end]
-    else:
-        raise TagNotPresentException('"<H1>" not found')
-    line_num += 1
-
-    while line_num < len(lines):
-        if '<DL><p>' in lines[line_num]:
-            break
-        non_parsed[line_num] = lines[line_num]
-        line_num += 1
-    else:
-        raise RootBookmarksFolderNotFoundException('Root bookmarks folder not found')
+    if line_num > len(lines):
+        warnings.warn('Root bookmarks folder not found')
+        return file
 
     body_start = line_num
     tag_counter = 0
@@ -290,7 +272,15 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
         raise TagNotPresentException('Root bookmarks folder body end tag ("</DL><p>") not found')
     body_end = line_num
 
-    pseud_h3_tag = '<DT><H3>' + file.title + '</H3>'
+    pseud_h3_tag = '<DT><H3>' + file.bookmarks.name + '</H3>'
     file.bookmarks = folder_handler(body_start - 1, pseud_h3_tag, lines[body_start:body_end + 1])
-    file.bookmarks.name = h1
+    file.bookmarks.name = root_name
     return file
+
+
+def add_parser(cls):
+    cls.parse = parse
+    return cls
+
+
+add_parser(NetscapeBookmarksFile)

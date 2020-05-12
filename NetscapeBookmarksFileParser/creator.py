@@ -2,8 +2,8 @@ from NetscapeBookmarksFileParser import *
 
 warning = list()
 warning.append('<!-- This is an automatically generated file.')
-warning.append('\tIt will be read and overwritten.')
-warning.append('\tDO NOT EDIT! -->')
+warning.append('     It will be read and overwritten.')
+warning.append('     DO NOT EDIT! -->')
 
 
 def http_verifier(url):
@@ -38,7 +38,7 @@ def meta_creator(doctype='NETSCAPE-Bookmark-file-1', meta=None, title='Bookmarks
     return ret
 
 
-def entry_creator(entry):
+def shortcut_creator(entry):
     attributes = dict()
     if entry.feed:
         attributes['FEED'] = "true"
@@ -61,7 +61,7 @@ def entry_creator(entry):
         attributes['PRIVATE'] = str(entry.private)
 
     if entry.tags:
-        attributes['TAGS'] = entry.tags
+        attributes['TAGS'] = ','.join(entry.tags)
 
     if entry.icon_url_fake or entry.icon_url:
         fake = 'fake-favicon-uri:' if entry.icon_url_fake else ''
@@ -93,54 +93,46 @@ def folder_creator(folder: BookmarkFolder):
     ret.append('<DT><H3' + attribute_printer(attributes) + '>' + folder.name + '</H3>')
     ret.append('<DL><p>')
     for item in folder.items:
-        if isinstance(item, BookmarkEntry):
-            entry = entry_creator(item)
+        if isinstance(item, BookmarkShortcut):
+            entry = shortcut_creator(item)
             for i in range(len(entry)):
-                entry[i] = '\t' + entry[i]
+                entry[i] = '    ' + entry[i]
             ret.extend(entry)
 
         elif isinstance(item, BookmarkFolder):
             folder = folder_creator(item)
             for i in range(len(folder)):
-                folder[i] = '\t' + folder[i]
+                folder[i] = '    ' + folder[i]
             ret.extend(folder)
 
     ret.append('</DL><p>')
     return ret
 
 
-class NetscapeBookmarksFile(NetscapeBookmarksFile):
+def create_file(netscape_bookmarks_file: NetscapeBookmarksFile, print_meta=True):
+    lines = list()
+    file = netscape_bookmarks_file
+    if print_meta:
+        if file.doc_type:
+            meta = [file.http_equiv_meta, file.content_meta]
+            lines.extend(meta_creator(file.doc_type, meta, file.title, file.bookmarks.name))
+        else:
+            lines.extend(meta_creator())
 
-    def parse_file(self):
-        pass
+    if file.bookmarks:
+        lines.extend(folder_creator(file.bookmarks)[1:])
 
-    def create_file(self, print_meta=True):
-        lines = list()
-        if print_meta:
-            if self.doc_type:
-                meta = [self.http_equiv_meta, self.content_meta]
-                lines.extend(meta_creator(self.doc_type, meta, self.title, self.bookmarks.name))
-            else:
-                lines.extend(meta_creator())
+    lines.append('')  # add final line break
 
-        if self.bookmarks:
-            lines.extend(folder_creator(self.bookmarks)[1:])
+    for line in lines:
+        file.html += line + '\n'
 
-        for line in lines:
-            self.html += line + '\n'
-
-        return lines
-
-    def sort_items(self):
-        sort_items(self.bookmarks)
-
-    def split_items(self):
-        split_items(self.bookmarks)
+    return lines
 
 
-def split_items(folder, recursive=True):
+def split_items(folder: BookmarkFolder, recursive=True):
     for item in folder.items:
-        if isinstance(item, BookmarkEntry):
+        if isinstance(item, BookmarkShortcut):
             folder.entries.append(item)
 
         elif isinstance(item, BookmarkFolder):
@@ -149,7 +141,7 @@ def split_items(folder, recursive=True):
                 split_items(item)
 
 
-def sort_items(folder, recursive=True):
+def sort_items(folder: BookmarkFolder, recursive=True):
     def sort_by_number(e):
         return e.num
 
@@ -160,5 +152,18 @@ def sort_items(folder, recursive=True):
             sort_items(child)
 
 
-def get_netscape_bookmarks_file():
-    return NetscapeBookmarksFile()
+def add_creator(cls):
+    def to_class(func):
+        def method(netscape_bookmarks_file: NetscapeBookmarksFile, folder: BookmarkFolder = None, recursive=True):
+            if folder is None:
+                folder = netscape_bookmarks_file.bookmarks
+            return func(folder, recursive)
+
+        return method
+
+    cls.create_file = create_file
+    cls.split_items = to_class(split_items)
+    cls.sort_items = to_class(sort_items)
+
+
+add_creator(NetscapeBookmarksFile)

@@ -1,20 +1,21 @@
 import unittest
 import warnings
 
-import NetscapeBookmarksFileParser.parser as parser
-import NetscapeBookmarksFileParser as classes
 
-attribute_finder = parser.attribute_finder
-doc_type = parser.doc_type
-folder = parser.folder
-entry = parser.entry
-item_handler = parser.item_handler
+import NetscapeBookmarksFileParser as Classes
+import NetscapeBookmarksFileParser.parser as parser
+
+attribute_finder = parser.attribute_extractor
+doc_type = parser.doc_type_extractor
+folder = parser.folder_tag_extractor
+entry = parser.shortcut_tag_extractor
+item_handler = parser.shortcut_handler
 folder_handler = parser.folder_handler
-Folder = classes.BookmarkFolder
-Entry = classes.BookmarkEntry
-Feed = classes.BookmarkFeed
-WebSlice = classes.BookmarkWebSlice
-File = classes.NetscapeBookmarksFile
+Folder = Classes.BookmarkFolder
+Entry = Classes.BookmarkShortcut
+Feed = Classes.BookmarkFeed
+WebSlice = Classes.BookmarkWebSlice
+File = Classes.NetscapeBookmarksFile
 parse = parser.parse
 
 
@@ -65,7 +66,7 @@ class TestAttributeFinder(unittest.TestCase):
                    'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAjUlEQVQ4jWNgGGjACGPYaRb' \
                    '+R5c8dL2fkZAcE0zgHwu7EJL8e2Q+VPF7bGrhBhy53AFXwMDI8B6FDxXDppaJgUJAsQEsWEX/MyhhBBxGMOIzgJHh3qFr' \
                    '/crIQnZahXcZ/jMooSsd+DCgngE2uhWCcNH/DIIofKgYNrXwQGT68' \
-                   '/MdknJBKB9rUkaWG3gAAFefNAZiDEFdAAAAAElFTkSuQmCC" '
+                   '/MdknJBKB9rUkaWG3gAAFefNAZiDEFdAAAAAElFTkSuQmCC"'
         output = attribute_finder(argument)
         expect_output = dict()
         expect_output['HREF'] = "http://hiddenpalace.org/"
@@ -165,7 +166,8 @@ class TestEntry(unittest.TestCase):
         exp = Entry()
         exp.href = 'https://bitbuilt.net/'
         exp.add_date_unix = 1571188868
-        exp.icon_base64 = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADH0lEQVQ4jXWTf0zUdRjH38/n+7mDr/cj6rtb4Abq2Q0' \
+        exp.icon_base64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADH0lEQVQ4jXWTf0zUdRjH38' \
+                          '/n+7mDr/cj6rtb4Abq2Q0' \
                           'rDpPEDVxz6mhUMttQNGDL/jyX0sLpibLAn6slOpSYFalbTucfbc5GN8VNw5NJHCYhWeStyx/5h8DuDuyu7/fz+fRH3s' \
                           'ag3v89z7O99n5+UexhrD8yHCnFNBFIuZyu8eLC4ojnOc+bRCTwP+KJyYTW2LFtZp4AGG6H+/Vv2y4MKaVKiCj9n4Dpw' \
                           'e665u+FMEeST5K+rosnViWmEtT/4w8vBb8J3hodHV3s8/lmQTgYA7MxSFNi2ZKlZ/0+f6dSqqi797uhaCoKu92O8EC4' \
@@ -189,7 +191,7 @@ class TestEntry(unittest.TestCase):
         exp.add_date_unix = 1474332448
         exp.last_modified_unix = 1585439784
         exp.icon_url = 'https://archive.org/favicon.ico'
-        exp.icon_base64 = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFQElEQVRYhbWXy2tTTxTH576apOBCEbRNXHTX3iQ2uvPxD2hTitidCiI0idVuBBdZxJvUahcVCooI7l25sFRSG18USxpNti5s1NqHS/+BgMnnt3GGuUlqyw+8cLiPOXPme77ncWeEaZoIIRBCYFkWpmliWRaWZWEYBoZh4DiOGhNCYNs2gUBAiW3bmKaJYRjqLp/luxBC3eX3P+sKNUEflAYkGNM01cISsC6BQEABlfbkPB1QB4j2Adu2sW0by7K6LiSEIBwOk06nmZubI51O09fXt6uuBK57rQMTuvc9PT0dBgzDIBgMcuHCBZ49e0a1WqVer9NoNABoNBrU63VqtRpPnz5lbGyMw4cP/9UBnREVAun5uXPnGB8fp1Ao8OHDB/7v1Ww2efHiBdeuXWNkZESxJEMk70JDQk9PD/Pz8zx69Ij5+Xnm5uaYnZ1lZmaGu3fvMj09TaFQYHp62ieFQgHP8/A8j5mZGe7fv8/s7CwPHjzg4cOHPH78mOPHjysAOhNCeyAYDJLNZsnlcuRyOTzPI5/Pk8/nKRQK5PN5PM+jUCio9/Zx+ex5Hrlcjmw2y507dzh58qSPAbmmrwp6e3v/N+V7Xbdu3VLV0hECiSYQCFAul3n//j3FYpF3795RrVap1WpUKhWWlpZYWlpibW2NWq3Gx48fqVarvHnzhmKxyMrKCrVajVqtRrlcplgssri4yKdPnxgbG1NhliFXANppicfjjI+PMzAw4ItXMplkZGSkI6vj8TgXL14kHA531W9vRHovEHqzEUJw5MgRvn37BsCTJ08IBAJYlsXVq1cVnZcvX8a2bRzH4ejRo2xsbADw8uVLQqEQtm1z5coVpX/p0iVVadJhlYztH44dO6bqfGFhQfWGyclJGo0GjUaDGzduKE8jkQjr6+s0Gg1KpRKhUAghBDdv3uzQl/HXu6PQu5UE8PXrVwDevn2rWm86nVYepVIpX1eU+q9fv1aAu+nLsa5VIBmIRCI+g8FgECEEqVRKGUyn0z4A6+vrSr8bYKkvnWyTTgD1er3DoA5AZ6C/v58vX74AsLy8rLxMpVI0m01arZbS3xWA3qF0gzql+wFQKpV8DLRarf0x0A5AUloqlfYEEA6HFWPLy8s+xlqt1v4Y2C0E7ZTulgMyZ/QqyGQyHfqO4+zOgOxOehLuB0B/f39XBiYmJjoY+ysAvQz1JJRVoGd1JpNRBvSy1ZNWZ+D69es+AL4y9O1O/lDaLasnJycBaLVaTExM+ELQLQl1BqS+4zj+H5HshHoSRiIRHwDdYLPZ7AhBX1+fStpXr14pxjKZDL9///YloXTG1wnbAQwMDLC1taUAhEIhTNNkampKeTQ1NaX2eLr+ysoKvb29XfUNwyAQCHTbJQt9f4bjODx//pxfv35x+/Zt5emZM2fY2dlhe3ub06dPq++2bSv9e/fuqe9nz57l58+f7OzscOrUqd1zQC9By7IYHBwkHo9z4sQJ4vE4rusSjUaJxWIMDw+TSCRwXZdYLIbrugwODhKLxUgkEkSjUYaGhhgaGsJ1XRKJBMPDw0SjUQ4ePIjubNdd8YEDB/hXVzabxTCMjjwQ7ZScP3+e0dFRksmk2lAkk0lGR0f3FF1Pzpf2Dh06pBaWf18FQPaAhYUFKpUKq6urVCoVyuWykrW1tT1F19Xnrq6u8vnzZ2KxmMobXw5IWhYXF9ne3ubHjx9sbm6yubmpnre2tvaU3fS+f//OxsYGruv6+oA6mOit+F+Lvh/0HUz009Fu4jgOjuPsS6/bPL3+O6qg7bz2T7zudgr/D1btuaaMYsEYAAAAAElFTkSuQmCC'
+        exp.icon_base64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFQElEQVRYhbWXy2tTTxTH576apOBCEbRNXHTX3iQ2uvPxD2hTitidCiI0idVuBBdZxJvUahcVCooI7l25sFRSG18USxpNti5s1NqHS/+BgMnnt3GGuUlqyw+8cLiPOXPme77ncWeEaZoIIRBCYFkWpmliWRaWZWEYBoZh4DiOGhNCYNs2gUBAiW3bmKaJYRjqLp/luxBC3eX3P+sKNUEflAYkGNM01cISsC6BQEABlfbkPB1QB4j2Adu2sW0by7K6LiSEIBwOk06nmZubI51O09fXt6uuBK57rQMTuvc9PT0dBgzDIBgMcuHCBZ49e0a1WqVer9NoNABoNBrU63VqtRpPnz5lbGyMw4cP/9UBnREVAun5uXPnGB8fp1Ao8OHDB/7v1Ww2efHiBdeuXWNkZESxJEMk70JDQk9PD/Pz8zx69Ij5+Xnm5uaYnZ1lZmaGu3fvMj09TaFQYHp62ieFQgHP8/A8j5mZGe7fv8/s7CwPHjzg4cOHPH78mOPHjysAOhNCeyAYDJLNZsnlcuRyOTzPI5/Pk8/nKRQK5PN5PM+jUCio9/Zx+ex5Hrlcjmw2y507dzh58qSPAbmmrwp6e3v/N+V7Xbdu3VLV0hECiSYQCFAul3n//j3FYpF3795RrVap1WpUKhWWlpZYWlpibW2NWq3Gx48fqVarvHnzhmKxyMrKCrVajVqtRrlcplgssri4yKdPnxgbG1NhliFXANppicfjjI+PMzAw4ItXMplkZGSkI6vj8TgXL14kHA531W9vRHovEHqzEUJw5MgRvn37BsCTJ08IBAJYlsXVq1cVnZcvX8a2bRzH4ejRo2xsbADw8uVLQqEQtm1z5coVpX/p0iVVadJhlYztH44dO6bqfGFhQfWGyclJGo0GjUaDGzduKE8jkQjr6+s0Gg1KpRKhUAghBDdv3uzQl/HXu6PQu5UE8PXrVwDevn2rWm86nVYepVIpX1eU+q9fv1aAu+nLsa5VIBmIRCI+g8FgECEEqVRKGUyn0z4A6+vrSr8bYKkvnWyTTgD1er3DoA5AZ6C/v58vX74AsLy8rLxMpVI0m01arZbS3xWA3qF0gzql+wFQKpV8DLRarf0x0A5AUloqlfYEEA6HFWPLy8s+xlqt1v4Y2C0E7ZTulgMyZ/QqyGQyHfqO4+zOgOxOehLuB0B/f39XBiYmJjoY+ysAvQz1JJRVoGd1JpNRBvSy1ZNWZ+D69es+AL4y9O1O/lDaLasnJycBaLVaTExM+ELQLQl1BqS+4zj+H5HshHoSRiIRHwDdYLPZ7AhBX1+fStpXr14pxjKZDL9///YloXTG1wnbAQwMDLC1taUAhEIhTNNkampKeTQ1NaX2eLr+ysoKvb29XfUNwyAQCHTbJQt9f4bjODx//pxfv35x+/Zt5emZM2fY2dlhe3ub06dPq++2bSv9e/fuqe9nz57l58+f7OzscOrUqd1zQC9By7IYHBwkHo9z4sQJ4vE4rusSjUaJxWIMDw+TSCRwXZdYLIbrugwODhKLxUgkEkSjUYaGhhgaGsJ1XRKJBMPDw0SjUQ4ePIjubNdd8YEDB/hXVzabxTCMjjwQ7ZScP3+e0dFRksmk2lAkk0lGR0f3FF1Pzpf2Dh06pBaWf18FQPaAhYUFKpUKq6urVCoVyuWykrW1tT1F19Xnrq6u8vnzZ2KxmMobXw5IWhYXF9ne3ubHjx9sbm6yubmpnre2tvaU3fS+f//OxsYGruv6+oA6mOit+F+Lvh/0HUz009Fu4jgOjuPsS6/bPL3+O6qg7bz2T7zudgr/D1btuaaMYsEYAAAAAElFTkSuQmCC'
         exp.name = 'Internet Arcade : Free Software : Download & Streaming : Internet Archive'
         self.assertEqual(exp, out)
 
@@ -205,7 +207,7 @@ class TestEntry(unittest.TestCase):
         exp.add_date_unix = 1543525273
         exp.last_modified_unix = 1585439784
         exp.icon_url_fake = True
-        exp.icon_base64 = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAjUlEQVQ4jWNgGGjACGPYaRb+R5c8dL2fkZAcE0zgHw' \
+        exp.icon_base64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAjUlEQVQ4jWNgGGjACGPYaRb+R5c8dL2fkZAcE0zgHw' \
                           'u7EJL8e2Q+VPF7bGrhBhy53AFXwMDI8B6FDxXDppaJgUJAsQEsWEX/MyhhBBxGMOIzgJHh3qFr/crIQnZahXcZ/jMo' \
                           'oSsd+DCgngE2uhWCcNH/DIIofKgYNrXwQGT68/MdknJBKB9rUkaWG3gAAFefNAZiDEFdAAAAAElFTkSuQmCC'
         exp.name = 'Hidden Palace'
@@ -392,15 +394,16 @@ class TestFolderHandler(unittest.TestCase):
 class TestParse(unittest.TestCase):
     def test_common(self):
         self.maxDiff = None
-        file = open('test.html')
-        self.file = File(file)
-        self.exp = File(file, parse_automatically=False)
-        self.exp = File(open('test.html'), parse_automatically=False)
-        self.exp.doc_type = 'NETSCAPE-Bookmark-file-1'
-        self.exp.http_equiv_meta = 'Content-Type'
-        self.exp.content_meta = 'text/html; charset=UTF-8'
-        self.exp.title = 'Bookmarks'
-        self.exp.bookmarks.name = 'Bookmarks'
+        file_html = open('test.html')
+        test_html = file_html.read()
+        file = File(test_html)
+        file.parse()
+        exp = File(test_html)
+        exp.doc_type = 'NETSCAPE-Bookmark-file-1'
+        exp.http_equiv_meta = 'Content-Type'
+        exp.content_meta = 'text/html; charset=UTF-8'
+        exp.title = 'Bookmarks'
+        exp.bookmarks.name = 'Bookmarks'
         arg1 = '<DT><H3 ADD_DATE="1588614754" LAST_MODIFIED="1588614939" PERSONAL_TOOLBAR_FOLDER="true">' \
                'Barra de favoritos</H3>'
         arg2 = ''' <DL><p>
@@ -409,18 +412,18 @@ class TestParse(unittest.TestCase):
         arg2 = arg2.splitlines()
         subfolder = folder_handler(8, arg1, arg2)
         subfolder.num = 0
-        subfolder.parent = self.exp
-        self.exp.bookmarks.items.append(subfolder)
-        self.exp.bookmarks.children.append(subfolder)
+        subfolder.parent = exp
+        exp.bookmarks.items.append(subfolder)
+        exp.bookmarks.children.append(subfolder)
         arg_ = '<DT><A HREF="https://www.reddit.com/" ADD_DATE="1588614939" ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACdUlEQVQ4jWXTTYjVdRTG8c/5/e+945hNMhLEgFRUA1lgNYHojJjpDXduQkSqjRiKJNSu2rRJV0VQi14IKohCW8UEIRJZ05uUGESrBBOsJocayRznvvxPizup0dmcxeF5zoHzfAOSCBKybRP2SpO4SUjMSjOKV+Ooz67VhKXKdUZc75CwWzGk/neAQBXUuSi9oevp+NRFiCRMGDHqiIa2rkSNgqu3Xc5aUQwLfR9bsCO+8FcjyLzBIQ1tPR2hIVWD7ZEeforMsPLGyh331g7u6rr4xzbDnseBkltNqezW0xfRIIqqpDrSytHQGg7Tb6XZM6mzWNDQUwuP5xbrI9veU+xU61tUBHpCB+vWs3qcd9+mhYbUxDK1UKm905AmpdQTbh2n2wnj97F5F7fcRd1j7WaOv89Pp0JzKP36c2hKTMmHymJulHlgQ51/X8i8MJdZ9/N/1e9lzp3LnD+fuW+izo0y26VTXPljDvrIKl5+gn330+/R67B3gjefYdUYzSFKdUVWZD1reaRvv0rffJT6fe6epP0YVYNGi8nt3LxmYHjyWDp1Ii2Xsj5bpM+VCEX6+kNZVTy4i3s2Mf878+fZsJ32o7JqcGJ6EK8SIcxUz91mVp2PaEZx+gcREcYn0ty5cPp7fjvD8HVpZFQceSEcfjG1hDo7evYH5BavGLJfR8dlDXeuLR7YkcZuH8T4l9Ph+Af8eLLW0tfS1PVSHPPkIMqTVhh2WNM2/UgLWesITQNWulJLGo6iytA1rdjpqEtXYVpjhTEHhT2qsoygXiKqlAFVvXoBr/nTs/GdS5Y4+y/OW01hD6awesn/rDCj7/X4xJfXav4BhnocQyGrEocAAAAASUVORK5CYII=">reddit: the front page of the internet</A>'
         item = item_handler(12, arg_)
         item.num = 1
-        item.parent = self.exp
-        self.exp.bookmarks.items.append(item)
-        self.exp.bookmarks.entries.append(item)
-        self.assertDictEqual(self.exp.__dict__, self.file.__dict__)
-        self.assertDictEqual(self.exp.bookmarks.__dict__, self.file.bookmarks.__dict__)
-        file.close()
+        item.parent = exp
+        exp.bookmarks.items.append(item)
+        exp.bookmarks.entries.append(item)
+        self.assertDictEqual(exp.__dict__, file.__dict__)
+        self.assertDictEqual(exp.bookmarks.__dict__, file.bookmarks.__dict__)
+        file_html.close()
 
 
 if __name__ == '__main__':

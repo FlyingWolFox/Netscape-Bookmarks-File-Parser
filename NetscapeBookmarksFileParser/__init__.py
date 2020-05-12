@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from NetscapeBookmarksFileParser.parser import parse
 
 non_parsed = dict()  # lines not parsed
 
@@ -34,9 +33,9 @@ class BookmarkFolder(BookmarkItem):
 
 
 @dataclass
-class BookmarkEntry(BookmarkItem):
+class BookmarkShortcut(BookmarkItem):
     """
-    Represents an entry (shortcut) in the bookmarks
+    Represents a shortcut in the bookmarks
     """
     href: str = ""  # link to the web page (or anything alike) of the entry
     last_visit_unix: int = 0  # date when the web paged was last visited, in unix time
@@ -50,11 +49,11 @@ class BookmarkEntry(BookmarkItem):
     comment: str = ""  # comment of the entry if present
 
     def __post_init__(self):
-        self.tags = list()
+        self.tags = []
 
 
 @dataclass
-class BookmarkFeed(BookmarkEntry):
+class BookmarkFeed(BookmarkShortcut):
     """
     Represents a Feed in the bookmarks
     """
@@ -63,7 +62,7 @@ class BookmarkFeed(BookmarkEntry):
 
 
 @dataclass
-class BookmarkWebSlice(BookmarkEntry):
+class BookmarkWebSlice(BookmarkShortcut):
     """
     Represents an Web Slice in the bookmarks
     """
@@ -77,7 +76,7 @@ class NetscapeBookmarksFile(object):
     Represents the Netscape Bookmark File
     """
 
-    def __init__(self, bookmarks="", parse_automatically=True):
+    def __init__(self, bookmarks=""):
         self.html: str = ""
         if hasattr(bookmarks, 'read'):
             self.html = bookmarks.read()
@@ -93,16 +92,6 @@ class NetscapeBookmarksFile(object):
         self.bookmarks = BookmarkFolder()
         global non_parsed
         self.non_parsed = non_parsed
-
-        if parse_automatically:
-            self.parse_file()
-
-    def parse_file(self):
-        """
-        starts the parsing of the file
-        :return: None
-        """
-        parse(self)
 
     def __str__(self):
         return "NetscapeBookmarkFile(bookmarks: {0})".format(str(self.bookmarks))
