@@ -82,7 +82,7 @@ class TestHttpVerifier(unittest.TestCase):
         self.assertEqual(exp, out)
 
 
-class TestEntryCreator(unittest.TestCase):
+class TestShortcutCreator(unittest.TestCase):
     def test_empty(self):
         arg = Classes.BookmarkShortcut()
         out = creator.shortcut_creator(arg)
@@ -90,7 +90,7 @@ class TestEntryCreator(unittest.TestCase):
         exp.append('<DT><A></A>')
         self.assertEqual(exp, out)
 
-    def test_entry_common(self):
+    def test_shortcut_common(self):
         arg = Classes.BookmarkShortcut()
         arg.href = 'https://duckduckgo.com'
         arg.name = 'Duck Duck Go'
@@ -151,15 +151,15 @@ class TestFolderCreator(unittest.TestCase):
     def test_item(self):
         arg = creator.BookmarkFolder()
         arg.name = 'Folder'
-        entry = creator.BookmarkShortcut()
-        entry.name = 'Duck Duck Go'
-        entry.href = 'https://duckduckgo.com'
-        arg.items.append(entry)
+        shortcut = creator.BookmarkShortcut()
+        shortcut.name = 'Duck Duck Go'
+        shortcut.href = 'https://duckduckgo.com'
+        arg.items.append(shortcut)
         out = creator.folder_creator(arg)
         exp = list()
         exp.append('<DT><H3>Folder</H3>')
         exp.append('<DL><p>')
-        exp.append('    ' + creator.shortcut_creator(entry)[0])
+        exp.append('    ' + creator.shortcut_creator(shortcut)[0])
         exp.append('</DL><p>')
         self.assertEqual(exp, out)
 
@@ -183,14 +183,14 @@ class TestFolderCreator(unittest.TestCase):
         arg = creator.BookmarkFolder()
         arg.name = 'Folder'
 
-        entry = creator.BookmarkShortcut()
-        entry.name = 'Duck Duck Go'
-        entry.href = 'https://duckduckgo.com'
-        arg.items.append(entry)
+        shortcut = creator.BookmarkShortcut()
+        shortcut.name = 'Duck Duck Go'
+        shortcut.href = 'https://duckduckgo.com'
+        arg.items.append(shortcut)
 
         folder = creator.BookmarkFolder()
         folder.name = 'Subfolder'
-        folder.items.append(entry)
+        folder.items.append(shortcut)
         arg.items.append(folder)
 
         out = creator.folder_creator(arg)
@@ -198,10 +198,10 @@ class TestFolderCreator(unittest.TestCase):
         exp = list()
         exp.append('<DT><H3>Folder</H3>')
         exp.append('<DL><p>')
-        exp.append('    ' + creator.shortcut_creator(entry)[0])
+        exp.append('    ' + creator.shortcut_creator(shortcut)[0])
         exp.append('    <DT><H3>Subfolder</H3>')
         exp.append('    <DL><p>')
-        exp.append('        ' + creator.shortcut_creator(entry)[0])
+        exp.append('        ' + creator.shortcut_creator(shortcut)[0])
         exp.append('    </DL><p>')
         exp.append('</DL><p>')
 

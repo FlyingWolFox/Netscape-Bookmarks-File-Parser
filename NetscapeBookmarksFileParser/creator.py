@@ -1,7 +1,7 @@
 from NetscapeBookmarksFileParser import *
 
 
-def http_verifier(url):
+def http_verifier(url: str):
     """
     verifies if the url starts with
     http:// or https://. If not, http://
@@ -62,7 +62,7 @@ def meta_creator(doctype='NETSCAPE-Bookmark-file-1', meta=None, title='Bookmarks
 
 def shortcut_creator(shortcut: BookmarkShortcut):
     """
-    creates a shortcut A tag from a BookmarkShortcut. If a
+    creates a shortcut A and DD tag from a BookmarkShortcut. If a
     value is the default, it won't be printed
     :param shortcut: the BookmarkShortcut
     :return: the list with two lines: first the A tag and the second the DD, if comment is present

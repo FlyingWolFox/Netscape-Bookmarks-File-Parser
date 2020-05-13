@@ -126,7 +126,7 @@ def shortcut_tag_extractor(tag: str, comment='') -> BookmarkShortcut:
 
 def shortcut_handler(line: int, a_tag: str, dd_tag: str = '') -> BookmarkShortcut:
     """
-    Handles items in the bookmark tree
+    Handles shortcuts in the bookmark tree
     :param line: the line number of the <A> tag
     :param a_tag: the <A> tag
     :param dd_tag: the <DD> tag
