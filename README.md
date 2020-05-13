@@ -73,7 +73,3 @@ in the wiki
 - If you would like to report a bug or ask a question please [open an issue](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/issues/new).
 - If you would like to help this project, you can open a Pull Request
 - If you want more information about this project, have a look at the [wiki](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki)
-
-## Future plans:
-- Create a branch that uses normal classes instead of data classes, for support in
-earlier versions of Python 
