@@ -1,11 +1,5 @@
 from NetscapeBookmarksFileParser import *
 
-# warning at the top of the file
-warning = list()
-warning.append('<!-- This is an automatically generated file.')
-warning.append('     It will be read and overwritten.')
-warning.append('     DO NOT EDIT! -->')
-
 
 def http_verifier(url):
     """
@@ -52,6 +46,11 @@ def meta_creator(doctype='NETSCAPE-Bookmark-file-1', meta=None, title='Bookmarks
     """
     if meta is None:
         meta = ["Content-Type", "text/html; charset=UTF-8"]
+    # warning at the top of the file
+    warning = list()
+    warning.append('<!-- This is an automatically generated file.')
+    warning.append('     It will be read and overwritten.')
+    warning.append('     DO NOT EDIT! -->')
     ret = list()
     ret.append('<!DOCTYPE ' + doctype + '>')
     ret.extend(warning)
