@@ -31,6 +31,74 @@ class BookmarkFolder(BookmarkItem):
         self.children = []
         self.shortcuts = []
 
+    def sync_items(self, recursive=True):
+        """
+        sync the folder item list with children and shortcut lists.
+        The item list is cleaned and populated with the items from
+        children and shortcut lists
+        :param recursive: if subfolders should have their items synced too
+        :return: nothing
+        """
+        self.items = []
+        self.items.extend(self.children)
+        self.items.extend(self.shortcuts)
+        if recursive:
+            for child in self.children:
+                child.sync_items()
+
+    def split_items(self, recursive=True):
+        """
+        splits the items list into children and shortcuts
+        :param self: folder to have items splitted
+        :param recursive: if subfolders should have their items splitted too
+        :return: nothing
+        """
+        for item in self.items:
+            if isinstance(item, BookmarkShortcut):
+                self.shortcuts.append(item)
+
+            elif isinstance(item, BookmarkFolder):
+                self.children.append(item)
+                if recursive:
+                    item.split_items()
+
+    def sort_items(self, recursive=True):
+        """
+        sort the items list by the num of each item.
+         split_items() is ran before sorting happens
+        :param recursive: if subfolders will have their items sorted too
+        :return: nothing
+        """
+
+        def sort_by_number(e):
+            return e.num
+
+        self.items.sort(key=sort_by_number)
+        self.children.sort(key=sort_by_number)
+        self.shortcuts.sort(key=sort_by_number)
+        self.split_items(recursive)
+        if recursive:
+            for child in self.children:
+                child.sort_items()
+
+    def sort_children_and_shortcuts(self, recursive=True):
+        """
+        sort the children and shortcuts lists by the num of each item.
+         sync_items() is ran before sorting happens
+        :param recursive: if subfolders will have their children and shortcuts sorted too
+        :return: nothing
+        """
+
+        def sort_by_number(e):
+            return e.num
+
+        self.children.sort(key=sort_by_number)
+        self.shortcuts.sort(key=sort_by_number)
+        self.sync_items(recursive)
+        if recursive:
+            for child in self.children:
+                child.sort_children_and_shortcuts()
+
 
 @dataclass
 class BookmarkShortcut(BookmarkItem):
@@ -92,86 +160,6 @@ class NetscapeBookmarksFile(object):
         self.bookmarks = BookmarkFolder()
         global non_parsed
         self.non_parsed = non_parsed
-
-    def sync_items(self, folder: BookmarkFolder = None, recursive=True):
-        """
-        sync the folder item list with children and shortcut lists.
-        The item list is cleaned and populated with the items from
-        children and shortcut lists
-        :param folder: folder to have the items synced
-        :param recursive: if subfolders should have their items synced too
-        :return: nothing
-        """
-        if folder is None:
-            folder = self.bookmarks
-        folder.items = []
-        folder.items.extend(folder.children)
-        folder.items.extend(folder.shortcuts)
-        if recursive:
-            for child in folder.children:
-                self.sync_items(child)
-
-    def split_items(self, folder: BookmarkFolder = None, recursive=True):
-        """
-        splits the items list into children and shortcuts
-        :param folder: folder to have items splitted
-        :param recursive: if subfolders should have their items splitted too
-        :return: nothing
-        """
-        if folder is None:
-            folder = self.bookmarks
-        for item in folder.items:
-            if isinstance(item, BookmarkShortcut):
-                folder.shortcuts.append(item)
-
-            elif isinstance(item, BookmarkFolder):
-                folder.children.append(item)
-                if recursive:
-                    self.split_items(item)
-
-    def sort_items(self, folder: BookmarkFolder = None, recursive=True):
-        """
-        sort the items list by the num of each item.
-         split_items() is ran before sorting happens
-        :param folder: folder to have its items sorted
-        :param recursive: if subfolders will have their items sorted too
-        :return: nothing
-        """
-
-        def sort_by_number(e):
-            return e.num
-
-        if folder is None:
-            folder = self.bookmarks
-        folder.items.sort(key=sort_by_number)
-        folder.children.sort(key=sort_by_number)
-        folder.shortcuts.sort(key=sort_by_number)
-        self.split_items(folder)
-        if recursive:
-            for child in folder.children:
-                self.sort_items(child)
-
-    def sort_children_and_shortcuts(self, folder: BookmarkFolder = None, recursive=True):
-        """
-        sort the children and shortcuts lists by the num of each item.
-         sync_items() is ran before sorting happens
-        :param folder: folder to have its children and shortcuts sorted
-        :param recursive: if subfolders will have their children and shortcuts sorted too
-        :return: nothing
-        """
-
-        def sort_by_number(e):
-            return e.num
-
-
-        if folder is None:
-            folder = self.bookmarks
-        folder.children.sort(key=sort_by_number)
-        folder.shortcuts.sort(key=sort_by_number)
-        self.sync_items(folder)
-        if recursive:
-            for child in folder.children:
-                self.sort_children_and_shortcuts(child)
 
     def __str__(self):
         return "NetscapeBookmarkFile(bookmarks: {0})".format(str(self.bookmarks))
