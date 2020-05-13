@@ -47,7 +47,7 @@ def doc_type_extractor(tag: str) -> str:
     Verifies if the <!DOCTYPE> tag is correct.
     Prints an warning if it doesn't match the expected
     :param tag: <!DOCTYPE> tag's line
-    :return: the conten of the tag (the doc type)
+    :return: the content of the tag (the doc type)
     """
     start = tag.find('<') + len('<!DOCTYPE ')
     end = tag.find('>')

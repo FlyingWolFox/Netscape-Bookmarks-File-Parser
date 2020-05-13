@@ -179,15 +179,6 @@ def add_creator(cls):
     :param cls: NetscapeBookmarksFile class
     :return: nothing
     """
-
-    def to_class(func):
-        """
-        gets a folder utility functions
-        and converts them into methods
-        :param func: function to be converted
-        :return: the method
-        """
-
     cls.create_file = create_file
 
 
