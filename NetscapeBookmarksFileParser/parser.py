@@ -263,7 +263,7 @@ def parse(netscape_bookmarks_file: NetscapeBookmarksFile):
     while line_num < len(lines):
         if '<DL><p>' in lines[line_num]:
             tag_counter += 1
-        if '</DL><p>' in lines[line_num]:
+        if '</DL><p>' or '</DL>' in lines[line_num]:
             tag_counter -= 1
         if tag_counter == 0:
             break
