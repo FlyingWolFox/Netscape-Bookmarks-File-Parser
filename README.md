@@ -22,9 +22,29 @@ from NetscapeBookmarksFileParser import *
 from NetscapeBookmarksFileParser import parser   # if you want to parse a file
 from NetscapeBookmarksFileParser import creator  # if you want to create a file
 ```
-Create a the NetscapeBookmarksFile `NetscapeBookmarkFile(bookmarks)`, being bookmarks 
-the opened file or a string with the content. Then call `parse()` to parse the file. 
-If you want to create the file call `create_file()`. To know about the classes
+then:
+
+```python
+bookmarks = NestcapeBookmarksFile(file).parse()
+```
+or
+```python
+bookmarks = NestcapeBookmarksFile(file)
+bookmarks.parse()
+```
+being file a string with the file contents or a file opened with `open()`, eg:
+```python
+with open('bookmarks.html') as file:
+    bookmarks = NetscapeBookmarksFile(file)
+```
+or
+```python
+with open('bookmarks.html') as file:
+    bookmarks = NetscapeBookmarksFile(file.read())
+```
+If you want to create a file, create the bookmark structure and call `create_file()`
+
+To know about the classes
 that the parser and the creator will work with, see the [wiki Classes section](https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser/wiki/Code-Documentation#classes) 
 
 ## Notice about this parser
