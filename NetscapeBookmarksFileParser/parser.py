@@ -111,6 +111,7 @@ def shortcut_tag_extractor(tag: str, comment='') -> BookmarkShortcut:
     bookmark_entry.last_visit_unix = int(attributes.get('LAST_VISIT', '0'))
     bookmark_entry.private = int(attributes.get('PRIVATE', '0'))
     bookmark_entry.tags = attributes.get('TAGS', '').split(',')
+    bookmark_entry.shortcut_url = attributes.get('SHORTCUTURL', '')
     if bookmark_entry.tags == ['']:
         bookmark_entry.tags = []
     icon_uri = attributes.get('ICON_URI', '')

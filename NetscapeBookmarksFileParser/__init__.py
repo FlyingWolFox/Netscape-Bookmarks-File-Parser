@@ -115,6 +115,7 @@ class BookmarkShortcut(BookmarkItem):
     feed: bool = False  # true if the attribute FEED  is present. Legacy support for feeds
     web_slice: bool = False  # true if the attribute WEBSLICE is present. Legacy support for web slices
     comment: str = ""  # comment of the shortcut if present
+    shortcut_url: str = ""  # the shortcut keyword associated with the shortcut, if set. Used by firefox (see #8)
 
     def __post_init__(self):
         self.tags = []
